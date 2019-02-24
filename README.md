@@ -29,17 +29,59 @@ Kubernetes) all configuration is done via environment variables.
 
 #### Sample Run Command
 
-```bash 
-docker run /
-  --env SOCKET_HOST=piaware /
-  --env SOCKET_PORT=30003 /
-  --env MQTT_HOST=mqtt.example.com /
-  --env MQTT_PORT=88883 /
-  --env MQTT_TOPIC=ADSB/adsb /
-  --env MQTT_CLIENT_ID=adsb-consumer /
-  --env MQTT_TLS=True /
-  socket-mqtt:latest
+`docker run -e SOCKET_HOST=piaware -e SOCKET_PORT="30003" -e MQTT_HOST="mqtt.example.com" -e MQTT_PORT="88883" -e MQTT_TOPIC="ADSB/adsb" -e MQTT_CLIENT_ID="adsb-consumer" -e MQTT_TLS="True"  socket-mqtt`
 
+
+#### Sample Kubernetes Manifests
+
+Config 
+
+```bash
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: adsb-to-mqtt
+  namespace: default
+data:
+  SOCKET_HOST: "dump1090"
+  SOCKET_PORT: "30003"
+  MQTT_HOST: "mqtt.example.com"
+  MQTT_PORT: "8883"
+  MQTT_TOPIC: "ADSB/adsb"
+  MQTT_CLIENT_ID: "adsb-to-mqtt"
+  MQTT_TLS: "True"
+  LOG_LEVEL: "INFO"
+
+```
+
+Deployment
+
+```bash
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adsb-to-mqtt
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: adsb-to-mqtt
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: adsb-to-mqtt
+    spec:
+      containers:
+      - name: adsb-to-mqtt
+        image: zebpalmer/socket-mqtt:latest
+        imagePullPolicy: Always
+        envFrom:
+          - configMapRef:
+              name: adsb-to-mqtt
+      restartPolicy: Always
 
 
 ```
