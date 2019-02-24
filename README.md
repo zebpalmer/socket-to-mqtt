@@ -23,7 +23,7 @@ Kubernetes) all configuration is done via environment variables.
 
 
 ##### Optional
-* MQTT_CLIENT_NAME (default: random uuid)
+* MQTT_CLIENT_ID (default: random uuid)
 * MQTT_TLS (default: False) Setting True will verify ssl cert
 * LOG_LEVEL (default: 'INFO')
 
@@ -36,7 +36,7 @@ docker run /
   --env MQTT_HOST=mqtt.example.com /
   --env MQTT_PORT=88883 /
   --env MQTT_TOPIC=ADSB/adsb /
-  --env MQTT_CLIENT_NAME=adsb-consumer /
+  --env MQTT_CLIENT_ID=adsb-consumer /
   --env MQTT_TLS=True /
   socket-mqtt:latest
 

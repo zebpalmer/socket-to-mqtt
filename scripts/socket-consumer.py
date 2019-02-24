@@ -18,20 +18,22 @@ def get_config():
         if os.environ.get(env) is None:
             raise Exception(f"Missing Required config, env var: {env}")
         else:
-            cfg[env] = os.environ[env]
-
-    if not os.environ.get("MQTT_CLIENT_NAME"):
-        cname = str(uuid.uuid4())
+            if 'port' in env.lower():
+                cfg[env] = int(os.environ[env])
+            else:
+                cfg[env] = os.environ[env]
+    cfg["MQTT_CLIENT_ID"] = os.environ.get('MQTT_CLIENT_ID')
+    if cfg['MQTT_CLIENT_ID'] is None:
+        cfg['MQTT_CLEAN_SESSION'] = True
     else:
-        cname = os.environ["MQTT_CLIENT_NAME"]
-    cfg["MQTT_CLIENT_NAME"]: cname
-    cfg["MQTT_TLS"]: os.environ.get("MQTT_TLS", False)
-    cfg["LOG_LEVEL"]: os.environ.get("LOG_LEVEL", "INFO")
+        cfg['MQTT_CLEAN_SESSION'] = os.environ.get('MQTT_CLEAN_SESSION', False)
+    cfg["MQTT_TLS"] = os.environ.get("MQTT_TLS", False)
+    cfg["LOG_LEVEL"] = os.environ.get("LOG_LEVEL", "INFO")
     return cfg
 
 
 def get_mqtt(cfg):
-    mqtt = paho.Client(cfg["MQTT_CLIENT_NAME"])
+    mqtt = paho.Client(client_id=cfg["MQTT_CLIENT_ID"], clean_session=cfg['MQTT_CLIENT_ID'])
     if cfg['MQTT_TLS']:
         mqtt.tls_set()
     mqtt.connect(cfg["MQTT_HOST"], cfg["MQTT_PORT"])
@@ -66,6 +68,6 @@ if __name__ == "__main__":
         logging.debug(f"Config: {cfg}")
         run(cfg)
     except Exception as e:
-        logging.critical(f"EXCEPTION: {e}")
+        logging.critical(f"EXCEPTION: {e}", exc_info=1)
     finally:
         logging.warning(f"Exiting...")
